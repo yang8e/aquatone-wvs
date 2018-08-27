@@ -30,10 +30,13 @@ sftp.get('/root/aquatone/'+input_url+'/urls.txt', 'urls.txt')
 ls=open('urls.txt')
 for i in ls: 
 	get_ip = i.strip('\n')
-	get_scan = os.popen('wvs_console.exe /scan '+get_ip).read()
-	print(get_scan)
-	if get_scan in '0 high':
+	try:
+		out_bytes = subprocess.run(['wvs_console.exe','/scan',get_ip],timeout=7200)
+		out_text = out_bytes.decode('utf-8')
+		print(out_text)
+	except subprocess.TimeoutExpired:
+		print('timeout,error')
+	if '0 high' in out_text or 'No alerts found' in out_text:
 		print('don\'t need look '+i+'\n\n')
 	else:
-		message = 'Subject: Vulnerability \n'+i
-		sendmail(message)
+		sendmail(out_text)
