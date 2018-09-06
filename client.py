@@ -20,11 +20,16 @@ transport = paramiko.Transport(('1.1.1.1', 22))
 transport.connect(username='root', password='1111111')
 ssh = paramiko.SSHClient()
 ssh._transport = transport
-stdin,stdout,stderr = ssh.exec_command('python /root/server.py '+input_url)
-cat_ = stdout.read().decode()
-print(cat_)
+stdin,stdout,stderr = ssh.exec_command('aquatone-discover -d '+input_url)
+for line in iter(stdout.readline, ""): 
+    print(line, end="")
+stdin,stdout,stderr = ssh.exec_command('aquatone-scan -p huge -d '+input_url)
+for line in iter(stdout.readline, ""): 
+    print(line, end="")
 sftp = paramiko.SFTPClient.from_transport(transport)
 sftp.get('/root/aquatone/'+input_url+'/urls.txt', 'urls.txt')
+sftp.close()
+transport.close()
 #---------------------------------------------------
 
 ls=open('urls.txt')
@@ -40,3 +45,5 @@ for i in ls:
 		print('don\'t need look '+i+'\n\n')
 	else:
 		sendmail(out_text)
+sendmail('扫描完成'+input_url)
+ls.close()
